@@ -3,305 +3,190 @@ document.addEventListener('DOMContentLoaded', () => {
     const output = document.getElementById('output');
     const terminal = document.getElementById('terminal');
     const bootScreen = document.getElementById('boot-screen');
+    const matrixCanvas = document.getElementById('matrix');
+    const ctx = matrixCanvas.getContext("2d");
     const PROMPT = 'user@portfolio:~$';
 
-    // Window buttons
-    const closeBtn = document.querySelector('.close-btn');
-    const minimizeBtn = document.querySelector('.minimize-btn');
-    const maximizeBtn = document.querySelector('.maximize-btn');
+    let matrixInterval;
+    let matrixRunning = false;
 
-    // ----------- CLI Data -----------
+    // -------- Commands Data --------
     const data = {
-        'help': {
-            description: 'Displays a list of available commands.',
-            output: `
+        help: { output: `
 Available commands:
 * <span class="info">about</span>      - Learn about me.
 * <span class="info">skills</span>     - See my technical skills.
-* <span class="info">projects</span>   - View a list of my work.
-* <span class="info">contact</span>    - Get my contact information.
-* <span class="info">theme [mode]</span> - Change theme (light | dark | cyberpunk)
-* <span class="info">clear</span>      - Clears the terminal screen.
-* <span class="info">echo [text]</span>- Repeat the input text.
-* <span class="info">help</span>       - You're using it now!
-            `
-        },
-        'about': {
-            description: 'My background and interests.',
-            output: `
-Hello! I am [Your Name], a [Your Role] passionate about solving problems and building digital experiences.
-            `
-        },
-        'skills': {
-            description: 'My technical stack.',
-            output: `
-## Technical Skills
-* **Languages:** JavaScript, Python, HTML, CSS, SQL
-* **Frontend:** React, Vue.js, SASS
-* **Backend:** Node.js, Express, Flask
-* **Tools:** Git, Docker, Firebase, AWS
-            `
-        },
-        'projects': {
-            description: 'Key projects.',
-            output: `
-## Projects
-* Portfolio Website
-* AI Chatbot System
-* Full-stack Web App
-            `
-        },
-        'contact': {
-            description: 'Contact information.',
-            output: `
-## Contact
-📧 Email: your@email.com
-🔗 GitHub: github.com/your-name
-🔗 LinkedIn: linkedin.com/in/your-profile
-            `
-        }
+* <span class="info">projects</span>   - View my work.
+* <span class="info">contact</span>    - Get contact details.
+* <span class="info">theme [mode]</span> - light | dark | cyberpunk
+* <span class="info">matrix</span>     - Enable Matrix mode
+* <span class="info">exit</span>       - Disable Matrix mode
+* <span class="info">clear</span>      - Clear terminal
+* <span class="info">echo [text]</span>- Repeat the text
+            `},
+        about: { output: `Hello, I am [Your Name], a developer building cool digital experiences.` },
+        skills: { output: `Languages: JS, Python, SQL\nTools: Git, Firebase, Docker\nFrameworks: React, Node.js` },
+        projects: { output: `1. Portfolio Website\n2. AI Chat Assistant\n3. Full-stack SaaS App` },
+        contact: { output: `📧 Email: example@email.com\n🔗 GitHub: username\n🔗 LinkedIn: profile link` }
     };
 
-    // ----------- Output Print Function -----------
+
+    // -------- Output Function --------
     function printOutput(text, isCommand = false) {
         const line = document.createElement('p');
-
-        if (isCommand) {
-            line.innerHTML = `<span id="prompt">${PROMPT}</span> ${text}`;
-            line.classList.add("executed");
-        } else {
-            line.innerHTML = text;
-        }
-
+        if (isCommand) line.classList.add("executed");
+        line.innerHTML = isCommand ? `<span id="prompt">${PROMPT}</span> ${text}` : text;
         output.appendChild(line);
         output.scrollTop = output.scrollHeight;
     }
 
-    function clearTerminal() {
-        output.innerHTML = '';
-        printOutput(data.help.output);
-    }
 
-    // ----------- Command Handler -----------
+    // -------- Commands Handler --------
     function handleCommand(fullCommand) {
-        const parts = fullCommand.trim().toLowerCase().split(' ');
-        const command = parts[0];
-        const args = parts.slice(1);
+        const [cmd, ...args] = fullCommand.toLowerCase().split(" ");
 
         printOutput(fullCommand, true);
 
-        if (data[command]) {
-            printOutput(data[command].output);
-        }
+        if (data[cmd]) return printOutput(data[cmd].output);
 
-        else if (command === 'theme') {
-            const selectedTheme = args[0];
-            const validThemes = ['light', 'dark', 'cyberpunk'];
+        if (cmd === "theme") return changeTheme(args[0]);
+        if (cmd === "clear") return clearTerminalScreen();
+        if (cmd === "echo") return printOutput(args.join(" "));
+        if (cmd === "matrix") return enableMatrix();
+        if (cmd === "exit") return disableMatrix();
 
-            if (validThemes.includes(selectedTheme)) {
-                document.body.className = selectedTheme;
-                localStorage.setItem("terminal-theme", selectedTheme);
-                printOutput(`Theme changed to <span class="info">${selectedTheme}</span>.`);
-            } else {
-                printOutput(`<span class="error">Available: light | dark | cyberpunk</span>`);
-            }
-        }
-
-        else if (command === 'clear') {
-            clearTerminal();
-        }
-
-else if (command === 'echo') {
-    printOutput(args.join(' '));
-}
-
-else if (command === 'matrix') {
-    enableMatrix();
-    printOutput(`<span class="info">Matrix mode activated. Type 'exit' to return.</span>`);
-}
-
-else if (command === 'exit') {
-    disableMatrix();
-}
-
-else if (command === '') {
-    return;
-}
-
-else {
-    printOutput(`<span class="error">Error: command not found: ${command}</span>`);
-}
-
+        printOutput(`<span class="error">Command not found: ${cmd}</span>`);
     }
 
-    // ----------- Close / Minimize / Maximize Controls -----------
 
-    function handleReopen() {
-        terminal.classList.remove('hidden');
-        document.getElementById('close-message')?.remove();
-        document.getElementById('minimize-message')?.remove();
-        input.focus();
+    // -------- Theme System --------
+    function changeTheme(mode) {
+        const valid = ["light", "dark", "cyberpunk"];
+        if (!valid.includes(mode)) return printOutput(`<span class="error">Modes: light | dark | cyberpunk</span>`);
+        document.body.className = mode;
+        localStorage.setItem("theme", mode);
+        printOutput(`<span class="info">Theme changed to ${mode}.</span>`);
     }
 
-    function closeTerminal(messageText, elementId) {
-        document.getElementById('close-message')?.remove();
-        document.getElementById('minimize-message')?.remove();
 
-        terminal.classList.add('hidden');
+    // -------- Matrix Mode --------
+    function enableMatrix() {
+        if (matrixRunning) return;
+        matrixRunning = true;
+        
+        document.body.classList.add("matrix-active");
 
-        const reopen = document.createElement('div');
-        reopen.id = elementId;
-        reopen.innerHTML = messageText;
-        reopen.addEventListener('click', handleReopen);
-        document.body.appendChild(reopen);
+        matrixCanvas.width = innerWidth;
+        matrixCanvas.height = innerHeight;
+        const letters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*()*&^%";
+        const fontSize = 16;
+        const columns = matrixCanvas.width / fontSize;
+        const rain = Array(columns).fill(1);
+
+        matrixInterval = setInterval(() => {
+            ctx.fillStyle = "rgba(0,0,0,0.06)";
+            ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+            ctx.fillStyle = "#00ff41";
+            ctx.font = `${fontSize}px monospace`;
+
+            rain.forEach((y, i) => {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, y * fontSize);
+                rain[i] = y * fontSize > matrixCanvas.height && Math.random() > 0.97 ? 0 : y + 1;
+            });
+        }, 50);
+
+        printOutput(`<span class="info">Matrix mode ON → type "exit" to stop.</span>`);
     }
 
-    maximizeBtn.addEventListener('click', () => {
-        terminal.classList.toggle('maximized');
-        terminal.classList.remove('hidden');
-        input.focus();
-    });
+    function disableMatrix() {
+        if (!matrixRunning) return;
+        matrixRunning = false;
+        clearInterval(matrixInterval);
+        ctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+        document.body.classList.remove("matrix-active");
+        printOutput(`<span class="error">Matrix mode disabled.</span>`);
+    }
 
-    closeBtn.addEventListener('click', () => {
-        closeTerminal('CLI Closed — Click to <span class="info">Reopen</span>', 'close-message');
-    });
 
-    minimizeBtn.addEventListener('click', () => {
-        closeTerminal('CLI minimized — Click to <span class="info">Reopen</span>', 'minimize-message');
-    });
+    // -------- UI Controls --------
+    const closeBtn = document.querySelector(".close-btn");
+    const minimizeBtn = document.querySelector(".minimize-btn");
+    const maximizeBtn = document.querySelector(".maximize-btn");
 
-    // ----------- Smooth Resize Animation -----------
-    let resizeTimeout;
+    closeBtn.onclick = () => showReopenMessage("CLI Closed — Click to Reopen", "close-message");
+    minimizeBtn.onclick = () => showReopenMessage("CLI Minimized — Click to Restore", "minimize-message");
+    maximizeBtn.onclick = () => clearTerminalScreen(); // <-- Green button = Clear terminal
+
+
+    function showReopenMessage(text, id) {
+        terminal.classList.add("hidden");
+        document.getElementById("close-message")?.remove();
+        document.getElementById("minimize-message")?.remove();
+
+        const msg = document.createElement("div");
+        msg.id = id;
+        msg.innerHTML = text;
+        msg.onclick = () => {
+            msg.remove();
+            terminal.classList.remove("hidden");
+            input.focus();
+        };
+        document.body.appendChild(msg);
+    }
+
+
+    // -------- Clear Terminal --------
+    function clearTerminalScreen() {
+        output.innerHTML = "";
+        printOutput(`<span class="info">✔ Terminal reset.</span>`);
+        printOutput(data.help.output);
+    }
+
+
+    // -------- Smooth Resize --------
     new ResizeObserver(() => {
         terminal.classList.add("resizing");
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            terminal.classList.remove("resizing");
-        }, 200);
+        setTimeout(() => terminal.classList.remove("resizing"), 200);
     }).observe(terminal);
 
-    // ----------- Boot Sequence -----------
 
+    // -------- Boot Animation --------
     const bootLines = [
-        "Initializing terminal...",
-        "Loading system packages...",
-        "Checking modules...",
-        "Connecting to environment...",
-        "✔ Boot Complete.",
+        "Initializing system...",
+        "Loading modules...",
+        "Connecting...",
+        "✔ Ready.",
         "",
-        "Welcome to your CLI Portfolio!"
     ];
 
-    let bootIndex = 0;
-
-    // ---------------- MATRIX MODE SCRIPT ----------------
-const matrixCanvas = document.getElementById("matrix");
-const ctx = matrixCanvas.getContext("2d");
-
-let matrixInterval;
-let matrixRunning = false;
-
-function enableMatrix() {
-    if (matrixRunning) return;
-    matrixRunning = true;
-
-    document.body.classList.add("matrix-active");
-
-    matrixCanvas.width = window.innerWidth;
-    matrixCanvas.height = window.innerHeight;
-
-    const letters = "01アカサタナハマヤラワZXCVBNM+=<>|";
-    const fontSize = 16;
-    const columns = matrixCanvas.width / fontSize;
-    const rainDrops = Array.from({ length: columns }, () => 1);
-
-    matrixInterval = setInterval(() => {
-        ctx.fillStyle = "rgba(0,0,0,0.08)";
-        ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-
-        ctx.fillStyle = "#00ff41";
-        ctx.font = fontSize + "px monospace";
-
-        rainDrops.forEach((y, i) => {
-            const text = letters.charAt(Math.floor(Math.random() * letters.length));
-            ctx.fillText(text, i * fontSize, y * fontSize);
-
-            if (y * fontSize > matrixCanvas.height && Math.random() > 0.975) {
-                rainDrops[i] = 0;
-            }
-            rainDrops[i]++;
-        });
-    }, 50);
-}
-
-function initialMessage() {
-    printOutput(`<span class="info">Available Commands Loaded.</span>\n`);
-    printOutput(data.help.output); // show commands first
-
-    const welcome = `
-Welcome to the CLI Portfolio of [Your Name]!
-You can start typing commands below.
-        `;
-    printOutput(welcome);
-}
-
-
-function disableMatrix() {
-    if (!matrixRunning) return;
-    matrixRunning = false;
-
-    document.body.classList.remove("matrix-active");
-
-    clearInterval(matrixInterval);
-    ctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-
-    printOutput(`<span class="error">Matrix mode disabled.</span>`);
-}
-
-// Resize matrix canvas smoothly
-window.addEventListener('resize', () => {
-    matrixCanvas.width = window.innerWidth;
-    matrixCanvas.height = window.innerHeight;
-});
-
-
-    function runBootSequence() {
+    function runBoot() {
         input.disabled = true;
+        let i = 0;
         const interval = setInterval(() => {
-            if (bootIndex < bootLines.length) {
-                bootScreen.textContent += bootLines[bootIndex] + "\n";
-                bootIndex++;
-            } else {
+            if (i < bootLines.length) bootScreen.textContent += bootLines[i++] + "\n";
+            else {
                 clearInterval(interval);
-                endBootScreen();
+                setTimeout(() => {
+                    bootScreen.classList.add("hidden");
+                    input.disabled = false;
+                    clearTerminalScreen(); // show commands automatically
+                    input.focus();
+                }, 900);
             }
         }, 400);
     }
 
-    function endBootScreen() {
-        setTimeout(() => {
-            bootScreen.classList.add("hidden");
-            input.disabled = false;
-            input.focus();
-            initialMessage();
-        }, 800);
-    }
+    // -------- Startup --------
+    document.body.className = localStorage.getItem("theme") || "dark";
+    runBoot();
 
-    // ----------- Load Theme + Start -----------
-    const savedTheme = localStorage.getItem("terminal-theme");
-    if (savedTheme) document.body.className = savedTheme;
-    else document.body.className = "dark";
-
-    // Input listener
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            handleCommand(input.value.trim());
-            input.value = '';
+    input.addEventListener('keydown', e => {
+        if (e.key === "Enter") {
+            handleCommand(input.value);
+            input.value = "";
         }
     });
 
-    document.body.addEventListener('click', () => input.focus());
-
-    // Startup
-    runBootSequence();
 });

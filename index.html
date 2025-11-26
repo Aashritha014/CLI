@@ -3,36 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLI Portfolio - [Your Name]</title>
+    <title>Aashritha CLI </title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark">
 
-    <!-- boot screen must be outside terminal -->
+    <!-- Boot animation -->
     <div id="boot-screen"></div>
 
-    <!-- matrix background should also be outside -->
+    <!-- Matrix Effect -->
     <canvas id="matrix"></canvas>
 
-    <!-- terminal container -->
+    <!-- Terminal -->
     <div id="terminal">
+
         <div id="window-bar">
             <div class="buttons-container">
                 <div class="window-button close-btn"></div>
                 <div class="window-button minimize-btn"></div>
                 <div class="window-button maximize-btn"></div>
             </div>
-            <span class="window-title">user@portfolio — bash</span>
+            <span class="window-title">aashirtha@portfolio — bash</span>
         </div>
-        
+
         <div id="output"></div>
 
         <div id="input-line">
-            <span id="prompt">user@portfolio:~$</span>
-            <input type="text" id="command-input" autofocus>
+            <span id="prompt">aashirtha@portfolio:~$</span>
+            <input type="text" id="command-input" autofocus autocomplete="off">
         </div>
     </div>
 
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

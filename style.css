@@ -336,12 +336,13 @@ body {
 #matrix {
     position: fixed;
     inset: 0;
-    background: transparent;
-    z-index: -1;
     opacity: 0;
     transition: opacity 1s ease;
     pointer-events: none;
+    z-index: -1;
 }
+
+
 
 .matrix-active #matrix {
     opacity: 1;
