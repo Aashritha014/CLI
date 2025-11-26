@@ -1,0 +1,349 @@
+/* -------------------------------------------------
+ THEME VARIABLES
+--------------------------------------------------- */
+:root {
+    --bg: #1d1f24;
+    --bg-secondary: #2c313a;
+    --text: #e6edf3;
+    --accent: #98c379;
+    --input: #61afef;
+    --prompt: #c678dd;
+}
+
+/* Light Mode */
+body.light {
+    --bg: #ffffff;
+    --bg-secondary: #e6e6e6;
+    --text: #1a1a1a;
+    --accent: #008b1e;
+    --input: #005eff;
+    --prompt: #e63946;
+}
+
+/* Dark Mode (default) */
+body.dark {
+    --bg: #1d1f24;
+    --bg-secondary: #2c313a;
+    --text: #e6edf3;
+    --accent: #98c379;
+    --input: #61afef;
+    --prompt: #c678dd;
+}
+
+/* Cyberpunk Mode */
+body.cyberpunk {
+    --bg: #050009;
+    --bg-secondary: #15001e;
+    --text: #ff00ff;
+    --accent: #00ffea;
+    --input: #00ff73;
+    --prompt: #ffea00;
+}
+
+/* -------------------------------------------------
+ GLOBAL STYLES (RESPONSIVE IMPROVED)
+--------------------------------------------------- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #e9e9e9;
+    color: #1e1e1e;
+    font-family: "JetBrains Mono", "Courier New", monospace;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* -------------------------------------------------
+ BOOT SCREEN
+--------------------------------------------------- */
+#boot-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #00ff83;
+    font-family: "JetBrains Mono", monospace;
+    padding: 40px;
+    font-size: 1.05rem;
+    white-space: pre-wrap;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 1s ease;
+    z-index: 999;
+}
+
+#boot-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* -------------------------------------------------
+ TERMINAL WRAPPER (RESPONSIVE WIDTH + SCALING)
+--------------------------------------------------- */
+#terminal {
+    width: 90vw;
+    max-width: 900px;
+    height: 80vh;
+    min-width: 320px;
+    min-height: 300px;
+    resize: both;
+    overflow: auto;
+
+    background: var(--bg);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+
+    display: flex;
+    flex-direction: column;
+
+    box-shadow:
+        0 20px 40px rgba(0,0,0,0.28),
+        inset 0 0 40px rgba(255,255,255,0.03);
+
+    transition: width 0.25s ease,
+                height 0.25s ease,
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+/* While the user is dragging the size */
+#terminal.resizing {
+    transform: scale(1.01);
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.4),
+        inset 0 0 45px rgba(255,255,255,0.06);
+}
+
+/* -------------------------------------------------
+ HEADER (MAC STYLE TITLE BAR)
+--------------------------------------------------- */
+#window-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    height: 20px;
+    background: var(--bg-secondary);
+    border-radius: 14px 14px 0 0;
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08);
+}
+
+.window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Window Buttons */
+.buttons-container {
+    display: flex;
+    gap: 6px;
+}
+
+.window-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform .15s ease;
+    position: relative;
+}
+
+.window-button:hover { transform: scale(1.15); }
+
+.close-btn { background:#ff5f57; }
+.minimize-btn { background:#febc2e; }
+.maximize-btn { background:#28c840; }
+
+/* -------------------------------------------------
+ TERMINAL OUTPUT AREA
+--------------------------------------------------- */
+#output {
+    padding: 16px 20px;
+    flex-grow: 1;
+    overflow-y: auto;
+    color: var(--text);
+    white-space: pre-wrap;
+    line-height: 1.55;
+    font-size: clamp(0.8rem, 1.5vw, 1.05rem);
+}
+
+/* Commands typed by user (green) */
+.executed {
+    color: #98c379 !important;
+    text-shadow: 0 0 6px rgba(152,195,121,0.5);
+}
+
+/* -------------------------------------------------
+ INPUT LINE
+--------------------------------------------------- */
+#input-line {
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-secondary);
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Typography + Command Input */
+#prompt {
+    color: var(--prompt);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+#command-input {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--input);
+    caret-color: var(--input);
+    font: inherit;
+    outline: none;
+    transition: .2s;
+}
+
+/* Blinking cursor effect */
+#command-input::after {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 1.2em;
+    margin-left: 4px;
+    background: var(--input);
+    animation: blink 0.8s steps(2, start) infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+/* Command Output Styles */
+.error { color: #e06c75; }
+.info { color: var(--accent); }
+
+/* -------------------------------------------------
+ TERMINAL STATE BEHAVIOR
+--------------------------------------------------- */
+#terminal.hidden { display: none; }
+
+#terminal.maximized {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    resize: none;
+}
+
+/* -------------------------------------------------
+ REOPEN MESSAGE STYLING (RESPONSIVE)
+--------------------------------------------------- */
+#close-message,
+#minimize-message {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 14px 30px;
+    background: #2c313a;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.15);
+
+    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+    transition: .2s;
+    text-align: center;
+}
+
+#close-message:hover,
+#minimize-message:hover {
+    background:#3b4048;
+    transform: translate(-50%, -50%) scale(1.07);
+}
+
+/* -------------------------------------------------
+ MOBILE OPTIMIZATION
+--------------------------------------------------- */
+@media (max-width: 768px) {
+    body {
+        overflow: auto;
+        padding: 10px;
+    }
+
+    #terminal {
+        width: 100vw;
+        height: 90vh;
+        border-radius: 10px;
+        resize: none;
+    }
+
+    #window-bar {
+        padding: 8px 12px;
+    }
+
+    .window-button {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    #output {
+        font-size: 0.85rem;
+        padding: 12px;
+    }
+
+    #input-line {
+        padding: 8px 12px;
+    }
+
+    #prompt {
+        font-size: 0.85rem;
+    }
+}
+
+/* -------------------------------------------------
+ SCROLLBAR STYLING
+--------------------------------------------------- */
+#output::-webkit-scrollbar {
+    width: 8px;
+}
+#output::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.2);
+}
+#output::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.25);
+    border-radius: 4px;
+}
+#output::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.35);
+}
+
+
+/* ---------------- MATRIX MODE ---------------- */
+#matrix {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 1s ease;
+    pointer-events: none;
+}
+
+.matrix-active #matrix {
+    opacity: 1;
+    pointer-events: none;
+}
