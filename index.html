@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Portfolio - [Your Name]</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- boot screen must be outside terminal -->
+    <div id="boot-screen"></div>
+
+    <!-- matrix background should also be outside -->
+    <canvas id="matrix"></canvas>
+
+    <!-- terminal container -->
+    <div id="terminal">
+        <div id="window-bar">
+            <div class="buttons-container">
+                <div class="window-button close-btn"></div>
+                <div class="window-button minimize-btn"></div>
+                <div class="window-button maximize-btn"></div>
+            </div>
+            <span class="window-title">user@portfolio — bash</span>
+        </div>
+        
+        <div id="output"></div>
+
+        <div id="input-line">
+            <span id="prompt">user@portfolio:~$</span>
+            <input type="text" id="command-input" autofocus>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
